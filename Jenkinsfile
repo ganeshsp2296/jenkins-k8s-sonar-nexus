@@ -11,7 +11,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'ganesh.developer', url: 'https://github.com/<your-username>/jenkins-k8s-sonar-nexus.git'
+                git branch: 'ganesh.developer', url: 'https://github.com/ganeshsp2296/jenkins-k8s-sonar-nexus.git'
             }
         }
 
