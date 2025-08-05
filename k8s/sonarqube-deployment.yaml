@@ -21,6 +21,13 @@ spec:
         image: sonarqube:lts
         ports:
         - containerPort: 9000
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
 ---
 apiVersion: v1
 kind: Service
@@ -33,4 +40,5 @@ spec:
     - protocol: TCP
       port: 9000
       targetPort: 9000
+      nodePort: 32000  # Fixed port to access externally
   type: NodePort
