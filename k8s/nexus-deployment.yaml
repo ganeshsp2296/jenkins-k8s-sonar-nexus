@@ -21,19 +21,21 @@ spec:
         image: sonatype/nexus3
         ports:
         - containerPort: 8081
-        resources:
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
         volumeMounts:
         - name: nexus-data
           mountPath: /nexus-data
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "300m"
+          limits:
+            memory: "1.5Gi"
+            cpu: "500m"
       volumes:
       - name: nexus-data
-        emptyDir: {}
+        hostPath:
+          path: /opt/nexus-data
+          type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
@@ -46,5 +48,4 @@ spec:
     - protocol: TCP
       port: 8081
       targetPort: 8081
-      nodePort: 32001
   type: NodePort
