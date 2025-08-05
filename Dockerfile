@@ -1,3 +1,8 @@
-FROM openjdk:17
-COPY target/myapp-1.0.jar /app/myapp.jar
-CMD ["java", "-jar", "/app/myapp.jar"]
+FROM openjdk:17-jdk-slim
+
+ARG JAR_FILE
+COPY ${JAR_FILE} /app/myapp.jar
+
+WORKDIR /app
+
+ENTRYPOINT ["java", "-jar", "myapp.jar"]
