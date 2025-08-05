@@ -13,29 +13,24 @@ spec:
         app: nexus
     spec:
       tolerations:
-      - key: "node-role.kubernetes.io/master"
+      - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"
         effect: "NoSchedule"
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
       containers:
       - name: nexus
         image: sonatype/nexus3
         ports:
         - containerPort: 8081
-        volumeMounts:
-        - name: nexus-data
-          mountPath: /nexus-data
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "300m"
+            memory: "512Mi"
+            cpu: "100m"
           limits:
-            memory: "1.5Gi"
+            memory: "1Gi"
             cpu: "500m"
-      volumes:
-      - name: nexus-data
-        hostPath:
-          path: /opt/nexus-data
-          type: DirectoryOrCreate
+
 ---
 apiVersion: v1
 kind: Service
