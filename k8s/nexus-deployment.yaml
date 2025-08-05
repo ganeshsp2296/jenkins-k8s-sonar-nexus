@@ -12,25 +12,21 @@ spec:
       labels:
         app: nexus
     spec:
-      tolerations:
-      - key: "node-role.kubernetes.io/control-plane"
-        operator: "Exists"
-        effect: "NoSchedule"
-      nodeSelector:
-        node-role.kubernetes.io/control-plane: ""
       containers:
       - name: nexus
         image: sonatype/nexus3
         ports:
         - containerPort: 8081
+        env:
+        - name: INSTALL4J_ADD_VM_PARAMS
+          value: "-Xms256m -Xmx512m -XX:MaxDirectMemorySize=512m"
         resources:
           requests:
             memory: "512Mi"
-            cpu: "100m"
+            cpu: "250m"
           limits:
             memory: "1Gi"
             cpu: "500m"
-
 ---
 apiVersion: v1
 kind: Service
