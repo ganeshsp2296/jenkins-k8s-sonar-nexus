@@ -2,44 +2,48 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE = 'MySonarQube'
-        NEXUS_URL = 'http://nexus:8081'
-        DOCKER_REPO = 'nexus:8082'
+        DOCKER_REPO = "nexus:8082"
+        SONARQUBE_SERVER = "MySonarQube"
+        MAVEN_HOME = tool name: 'Maven', type: 'maven'
     }
 
     stages {
-
         stage('Checkout') {
             steps {
-                git branch: 'ganesh.developer', url: 'https://github.com/ganeshsp2296/jenkins-k8s-sonar-nexus.git'
+                git branch: 'ganesh.developer', url: 'https://github.com/<your-username>/jenkins-k8s-sonar-nexus.git'
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('SonarQube Scan') {
             steps {
-                withSonarQubeEnv("${SONARQUBE}") {
-                    sh 'sonar-scanner -Dsonar.projectKey=my-app -Dsonar.sources=./src'
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    sh "${MAVEN_HOME}/bin/mvn sonar:sonar"
                 }
             }
         }
 
-        stage('Build Artifact') {
+        stage('Build with Timestamp') {
             steps {
-                sh 'mvn clean package'
+                script {
+                    env.BUILD_TIMESTAMP = sh(script: "date +%Y%m%d-%H%M", returnStdout: true).trim()
+                }
+                sh "${MAVEN_HOME}/bin/mvn clean package"
+                sh "cp target/myapp-1.0.jar target/myapp-1.0-${BUILD_TIMESTAMP}.jar"
             }
         }
 
-        stage('Upload Artifact to Nexus') {
+        stage('Upload to Nexus') {
             steps {
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
                     protocol: 'http',
                     nexusUrl: 'nexus:8081',
                     groupId: 'com.ganesh.app',
-                    version: "1.0.${BUILD_NUMBER}",
+                    version: "1.0-${BUILD_TIMESTAMP}",
                     repository: 'maven-releases',
+                    credentialsId: 'nexus-credentials',
                     artifacts: [
-                        [artifactId: 'myapp', classifier: '', file: 'target/myapp-1.0.jar', type: 'jar']
+                        [artifactId: 'myapp', classifier: '', file: "target/myapp-1.0-${BUILD_TIMESTAMP}.jar", type: 'jar']
                     ]
                 )
             }
@@ -47,11 +51,16 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                docker build -t ${DOCKER_REPO}/myapp:1.0.${BUILD_NUMBER} .
-                docker login ${DOCKER_REPO} -u admin -p admin123
-                docker push ${DOCKER_REPO}/myapp:1.0.${BUILD_NUMBER}
-                '''
+                sh "docker build -t ${DOCKER_REPO}/myapp:${BUILD_TIMESTAMP} --build-arg JAR_FILE=target/myapp-1.0-${BUILD_TIMESTAMP}.jar ."
+            }
+        }
+
+        stage('Push Docker Image to Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh "docker login ${DOCKER_REPO} -u $USERNAME -p $PASSWORD"
+                    sh "docker push ${DOCKER_REPO}/myapp:${BUILD_TIMESTAMP}"
+                }
             }
         }
     }
