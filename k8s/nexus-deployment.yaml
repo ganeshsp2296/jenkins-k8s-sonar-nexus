@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nexus
-  labels:
-    app: nexus
 spec:
   replicas: 1
   selector:
@@ -15,7 +13,7 @@ spec:
         app: nexus
     spec:
       tolerations:
-      - key: "node-role.kubernetes.io/master"
+      - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"
         effect: "NoSchedule"
       containers:
@@ -28,11 +26,11 @@ spec:
           value: "-Xms256m -Xmx512m -XX:MaxDirectMemorySize=512m"
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "800Mi"
+            cpu: "200m"
           limits:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "1.5Gi"
+            cpu: "600m"
 ---
 apiVersion: v1
 kind: Service
