@@ -1,0 +1,9 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+  <servers>
+    <server>
+      <id>nexus-credentials</id>
+      <username>jenkins</username>
+      <password>qwerty</password>
+    </server>
+  </servers>
+</settings>
